@@ -2,18 +2,18 @@
 
 This folder contains a Terraform **product module** that deploys a full, modernized
 DataHub solution: the `datahub-k8s` charm (via the [charm module](../charm)), its data platform
-(PostgreSQL, Kafka + ZooKeeper, OpenSearch + self-signed-certificates), two Traefik ingresses
+(PostgreSQL, Kafka, OpenSearch + self-signed-certificates), two Traefik ingresses
 (frontend + GMS) with TLS, the Juju secrets DataHub needs, and optionally an IdP integrator for SSO.
 
 ## Topology
 
-This is a **single-controller** module: one Juju controller with both a machine cloud and a K8s
-cloud (e.g. LXD + Canonical K8s). DataHub is a K8s charm; its data platform (PostgreSQL, Kafka,
-OpenSearch) are **machine** charms, so they live in a separate machine-cloud model and are consumed
-via cross-model offers. Two modes:
+This is a **single-controller** module: one Juju controller with two K8s
+models (e.g. data-platform and datahub). DataHub consumes the Data-Platform via cross-model offers.
+
+Two modes:
 
 - **Deploy the data platform (default):** leave the `*_offer_url` inputs empty. The module deploys
-  the data platform in `machine_model_uuid`, creates cross-model offers, and consumes them from
+  the data platform in `data_platform_model_uuid`, creates cross-model offers, and consumes them from
   `k8s_model_uuid`. One `terraform apply` brings up the whole stack.
 - **Bring your own data platform:** point `database_offer_url` / `kafka_offer_url` /
   `opensearch_offer_url` at an existing data platform offered from another model **on the same

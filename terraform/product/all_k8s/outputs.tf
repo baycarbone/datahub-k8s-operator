@@ -28,7 +28,7 @@ output "models" {
       )
     }
     data-platform = {
-      model_uuid = local.deploy_deps ? var.machine_model_uuid : null
+      model_uuid = local.deploy_deps ? var.data_platform_model_uuid : null
       #components = local.deploy_deps ? module.dependencies[0].components : {}
     }
   }

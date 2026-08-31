@@ -13,8 +13,8 @@ run "setup_tests" {
 
 run "full_deploy" {
   variables {
-    k8s_model_uuid     = run.setup_tests.k8s_model_uuid
-    machine_model_uuid = run.setup_tests.machine_model_uuid
+    k8s_model_uuid           = run.setup_tests.k8s_model_uuid
+    data_platform_model_uuid = run.setup_tests.data_platform_model_uuid
   }
 
   assert {
@@ -36,7 +36,7 @@ run "wait_for_opensearch_active" {
   }
 
   variables {
-    model_uuid = run.setup_tests.machine_model_uuid
+    model_uuid = run.setup_tests.data_platform_model_uuid
     app_name   = "opensearch"
     timeout    = 1200
   }
@@ -74,8 +74,8 @@ run "enable_sso" {
   command = plan
 
   variables {
-    k8s_model_uuid     = run.setup_tests.k8s_model_uuid
-    machine_model_uuid = run.setup_tests.machine_model_uuid
+    k8s_model_uuid           = run.setup_tests.k8s_model_uuid
+    data_platform_model_uuid = run.setup_tests.data_platform_model_uuid
     oauth_external_idp_integrator_config = {
       client_id     = "stub-client-id"
       client_secret = "stub-client-secret"

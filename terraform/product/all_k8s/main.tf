@@ -7,7 +7,7 @@ module "dependencies" {
   count  = local.deploy_deps ? 1 : 0
   source = "./modules/dependencies"
 
-  model_uuid               = var.machine_model_uuid
+  model_uuid               = var.data_platform_model_uuid
   postgresql               = var.postgresql
   kafka_broker             = var.kafka_broker
   kafka_controller         = var.kafka_controller

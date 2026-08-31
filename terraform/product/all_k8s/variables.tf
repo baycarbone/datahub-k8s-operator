@@ -141,14 +141,14 @@ variable "kafka_offer_url" {
   default     = ""
 }
 
-variable "machine_model_uuid" {
-  description = "UUID of the machine Juju model for the in-module data platform. Required when the *_offer_url inputs are empty."
+variable "data_platform_model_uuid" {
+  description = "UUID of the Juju model hosting the in-module data platform. Required when the *_offer_url inputs are empty."
   type        = string
   default     = ""
 
   validation {
-    condition     = var.database_offer_url != "" || var.machine_model_uuid != ""
-    error_message = "machine_model_uuid is required when deploying the in-module data platform (i.e. when the *_offer_url inputs are empty)."
+    condition     = var.database_offer_url != "" || var.data_platform_model_uuid != ""
+    error_message = "data_platform_model_uuid is required when deploying the in-module data platform (i.e. when the *_offer_url inputs are empty)."
   }
 }
 
