@@ -5,7 +5,7 @@ terraform {
   required_version = "~> 1.14"
   required_providers {
     juju = {
-      version = "~> 1.0"
+      version = "~> 2.0"
       source  = "juju/juju"
     }
   }
@@ -54,7 +54,7 @@ variable "k8s_credential_name" {
 }
 
 output "data_platform_model_uuid" {
-  value = juju_model.machine.uuid
+  value = juju_model.data_platform.uuid
 }
 
 output "k8s_model_uuid" {
