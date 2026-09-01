@@ -1,7 +1,7 @@
 # Copyright 2024 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-### DATA PLATFORM (machine model): deployed in-module unless external offers are supplied
+### DATA PLATFORM (data-platform K8s model): deployed in-module unless external offers are supplied
 
 module "dependencies" {
   count  = local.deploy_deps ? 1 : 0
@@ -9,19 +9,16 @@ module "dependencies" {
 
   model_uuid               = var.data_platform_model_uuid
   postgresql               = var.postgresql
-  kafka_broker             = var.kafka_broker
-  kafka_controller         = var.kafka_controller
-  kafka_connect            = var.kafka_connect
-  kafka_karapace           = var.kafka_karapace
-  kafka_ui                 = var.kafka_ui
-  kafka_profile            = var.kafka_profile
   opensearch               = var.opensearch
   self_signed_certificates = var.self_signed_certificates
 }
 
-### DATAHUB (K8s model)
-
+# Kafka sits in the DataHub model rather than with the rest of the data platform: kafka-k8s cannot
+# currently serve its `kafka-client` endpoint over a cross-model relation. It is still gated on
+# `deploy_deps`, so supplying `kafka_offer_url` skips it instead of deploying an application the
+# integration below would never use.
 module "kafka" {
+  count  = local.deploy_deps ? 1 : 0
   source = "git::https://github.com/canonical/kafka-k8s-bundle//terraform?ref=0456d03"
 
   model_uuid = var.k8s_model_uuid
@@ -33,8 +30,10 @@ module "kafka" {
   profile    = var.kafka_profile
 }
 
+### DATAHUB (K8s model)
+
 module "datahub" {
-  source = "../charm"
+  source = "../../charm"
 
   app_name    = var.datahub.app_name
   model_uuid  = var.k8s_model_uuid
@@ -157,7 +156,7 @@ module "self_signed_certificates" {
   units       = var.self_signed_certificates.units
 }
 
-### INTEGRATIONS: DataHub to the data platform (cross-model, via offers)
+### INTEGRATIONS: DataHub to the data platform (via offers, except in-model Kafka)
 
 resource "juju_integration" "datahub_database" {
   model_uuid = var.k8s_model_uuid
@@ -180,12 +179,12 @@ resource "juju_integration" "datahub_kafka" {
     endpoint = module.datahub.requires.kafka
   }
 
-  # application {
-  #   offer_url = local.kafka_offer
-  # }
+  # In-module Kafka shares the DataHub model, so it is related directly; only an externally
+  # supplied Kafka is consumed over an offer.
   application {
-    name     = module.kafka.app_names.broker
-    endpoint = "kafka-client"
+    name      = local.deploy_deps ? module.kafka[0].app_names.broker : null
+    endpoint  = local.deploy_deps ? "kafka-client" : null
+    offer_url = local.deploy_deps ? null : var.kafka_offer_url
   }
 }
 
@@ -199,6 +198,25 @@ resource "juju_integration" "datahub_opensearch" {
 
   application {
     offer_url = local.opensearch_offer
+  }
+}
+
+# Kafka 4 runs in KRaft mode and stays in "waiting for internal TLS setup" until the traffic
+# between its broker and controller roles is secured, so the peer endpoint gets a certificates
+# provider. The client `certificates` endpoint is deliberately left unrelated: the kafka-client
+# listener then stays plaintext and DataHub needs no CA trust.
+resource "juju_integration" "kafka_peer_certificates" {
+  count      = local.deploy_deps ? 1 : 0
+  model_uuid = var.k8s_model_uuid
+
+  application {
+    name     = module.kafka[0].app_names.broker
+    endpoint = "peer-certificates"
+  }
+
+  application {
+    name     = module.self_signed_certificates.app_name
+    endpoint = module.self_signed_certificates.provides.certificates
   }
 }
 

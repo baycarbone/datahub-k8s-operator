@@ -1,24 +1,35 @@
-# DataHub product Terraform module
+# DataHub all-Kubernetes product Terraform module
 
 This folder contains a Terraform **product module** that deploys a full, modernized
-DataHub solution: the `datahub-k8s` charm (via the [charm module](../charm)), its data platform
+DataHub solution: the `datahub-k8s` charm (via the [charm module](../../charm)), its data platform
 (PostgreSQL, Kafka, OpenSearch + self-signed-certificates), two Traefik ingresses
 (frontend + GMS) with TLS, the Juju secrets DataHub needs, and optionally an IdP integrator for SSO.
 
+It differs from the [sibling product module](../README.md) in one respect: every charm it deploys
+is a Kubernetes charm, so the data platform needs no machine cloud. Kafka runs in KRaft mode, so
+there is no ZooKeeper application.
+
 ## Topology
 
-This is a **single-controller** module: one Juju controller with two K8s
-models (e.g. data-platform and datahub). DataHub consumes the Data-Platform via cross-model offers.
+This is a **single-controller** module: one Juju controller with two Kubernetes models (e.g.
+`data-platform` and `datahub`), both on the same K8s cloud. DataHub consumes PostgreSQL and
+OpenSearch from the data-platform model via cross-model offers.
+
+Kafka is the exception: it is deployed into the DataHub model and related in-model, because
+`kafka-k8s` cannot currently serve its `kafka-client` endpoint over a cross-model relation. It is
+still part of the data platform as far as this module's inputs go, so it is deployed and skipped
+together with the rest.
 
 Two modes:
 
 - **Deploy the data platform (default):** leave the `*_offer_url` inputs empty. The module deploys
-  the data platform in `data_platform_model_uuid`, creates cross-model offers, and consumes them from
-  `k8s_model_uuid`. One `terraform apply` brings up the whole stack.
+  PostgreSQL and OpenSearch in `data_platform_model_uuid` and offers them, Kafka in
+  `k8s_model_uuid`, and consumes all three from `k8s_model_uuid`. One `terraform apply` brings up
+  the whole stack.
 - **Bring your own data platform:** point `database_offer_url` / `kafka_offer_url` /
   `opensearch_offer_url` at an existing data platform offered from another model **on the same
-  controller**. The in-module data-platform deploy is then skipped and DataHub just consumes the
-  offers.
+  controller**. Nothing is deployed in-module and DataHub just consumes the offers. Note that
+  `kafka_offer_url` runs into the same cross-model limitation; it is wired for when that is fixed.
 
 > Set the three `*_offer_url` inputs together (all or none, enforced by variable validation).
 
@@ -77,7 +88,8 @@ This product module is composed entirely of **charm modules** and a **component 
 - **outputs.tf** - `models`, `metadata`, `offers`.
 - **locals.tf** - deploy/offer resolution and DataHub config assembly.
 - **terraform.tf** - Terraform and provider version constraints.
-- **modules/{postgresql,kafka,zookeeper,opensearch,self-signed-certificates,traefik-k8s,oauth-external-idp-integrator}** -
-  local **charm modules**: swap each `source` to the official upstream charm module once it is published.
+- **modules/{opensearch,traefik-k8s,oauth-external-idp-integrator}** - local **charm modules**:
+  swap each `source` to the official upstream charm module once one is published. PostgreSQL, Kafka
+  and self-signed-certificates already come from their upstream modules, pinned by tag or commit.
 - **modules/dependencies** - the data-platform **component module**: composes the data-platform
   charm modules above, wires their integrations, and exposes the cross-model offers.

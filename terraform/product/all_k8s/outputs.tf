@@ -22,6 +22,12 @@ output "models" {
           traefik-gms              = module.traefik_gms.application.name
           self-signed-certificates = module.self_signed_certificates.app_name
         },
+        # Kafka lives in this model, not with the rest of the data platform. The bundle reports one
+        # name per role and nulls the roles it did not deploy; in single mode broker and controller
+        # are the same application.
+        local.deploy_deps ? {
+          for role, name in module.kafka[0].app_names : "kafka-${role}" => name if name != null
+        } : {},
         local.enable_sso ? {
           oauth-external-idp-integrator = module.oauth_external_idp_integrator[0].application.name
         } : {},
@@ -29,7 +35,7 @@ output "models" {
     }
     data-platform = {
       model_uuid = local.deploy_deps ? var.data_platform_model_uuid : null
-      #components = local.deploy_deps ? module.dependencies[0].components : {}
+      components = local.deploy_deps ? module.dependencies[0].components : {}
     }
   }
 }

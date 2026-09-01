@@ -7,9 +7,9 @@
 ### CHARM MODULES
 
 module "postgresql" {
-  source = "git::https://github.com/canonical/postgresql-k8s-operator//terraform?ref=b6a9096"
+  source = "git::https://github.com/canonical/postgresql-k8s-operator//terraform?ref=v16/1.194.0"
 
-  model_uuid         = var.model_uuid
+  juju_model         = var.model_uuid
   app_name           = var.postgresql.app_name
   channel            = var.postgresql.channel
   revision           = var.postgresql.revision
@@ -81,7 +81,7 @@ resource "juju_integration" "opensearch_certificates" {
 resource "juju_offer" "database" {
   model_uuid       = var.model_uuid
   name             = "database"
-  application_name = module.postgresql.app_name
+  application_name = module.postgresql.application_name
   endpoints        = ["database"]
 }
 

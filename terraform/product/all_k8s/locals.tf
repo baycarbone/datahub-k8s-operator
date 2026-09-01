@@ -13,7 +13,7 @@ locals {
   # the externally supplied offer URL.
   database_offer = local.deploy_deps ? module.dependencies[0].offers.database : var.database_offer_url
   # kafka_offer      = local.deploy_deps ? module.dependencies[0].offers.kafka_client[0] : var.kafka_offer_url
-  kafka_offer      = local.deploy_deps ? module.kafka.offers.kafka-client[0] : var.kafka_offer_url
+  kafka_offer      = local.deploy_deps ? module.kafka[0].offers.kafka-client[0] : var.kafka_offer_url
   opensearch_offer = local.deploy_deps ? module.dependencies[0].offers.opensearch_client : var.opensearch_offer_url
 
   # Encryption keys: overrides when provided, else generated random values.

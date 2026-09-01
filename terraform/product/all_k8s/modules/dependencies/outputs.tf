@@ -1,22 +1,19 @@
 # Copyright 2024 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-# output "components" {
-#   description = "Objects representing the deployed data-platform applications."
-#   value = {
-#     postgresql               = module.postgresql.application
-#     kafka                    = module.kafka.application
-#     zookeeper                = module.zookeeper.application
-#     opensearch               = module.opensearch.application
-#     self-signed-certificates = module.self_signed_certificates.application
-#   }
-# }
+output "components" {
+  description = "Names of the deployed data-platform applications, keyed by role."
+  value = {
+    postgresql               = module.postgresql.application_name
+    opensearch               = module.opensearch.app_name
+    self-signed-certificates = module.self_signed_certificates.app_name
+  }
+}
 
 output "offers" {
   description = "Cross-model offer URLs for the data-platform endpoints consumed by DataHub."
   value = {
-    database = juju_offer.database.url
-    # kafka_client      = module.kafka.offers.kafka-client
+    database          = juju_offer.database.url
     opensearch_client = juju_offer.opensearch_client.url
   }
 }
