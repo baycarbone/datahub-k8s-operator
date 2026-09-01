@@ -1,3 +1,6 @@
+# Copyright 2024 Canonical Ltd.
+# See LICENSE file for licensing details.
+
 variable "app_name" {
   description = "Application name in the Juju model"
   type        = string
