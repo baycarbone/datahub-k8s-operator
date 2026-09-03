@@ -13,6 +13,10 @@ terraform {
 
 provider "juju" {
   skip_failed_deletion = true
+
+  default_timeouts {
+    delete = "2m"
+  }
 }
 
 resource "juju_model" "data_platform" {

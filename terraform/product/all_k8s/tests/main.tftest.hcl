@@ -8,6 +8,10 @@
 
 provider "juju" {
   skip_failed_deletion = true
+
+  default_timeouts {
+    delete = "2m"
+  }
 }
 
 run "setup_tests" {
