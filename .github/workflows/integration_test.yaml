@@ -21,6 +21,7 @@ jobs:
       provider: "k8s"
       channel: "1.32-classic/stable"
       use-canonical-k8s: true
+      upload-image: registry
       extra-arguments: |
         --kube-config=~/.kube/config
       juju-channel: "3/stable"

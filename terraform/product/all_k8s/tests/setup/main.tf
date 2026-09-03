@@ -11,7 +11,9 @@ terraform {
   }
 }
 
-provider "juju" {}
+provider "juju" {
+  skip_failed_deletion = true
+}
 
 resource "juju_model" "data_platform" {
   name       = "tf-testing-deps-${formatdate("YYYYMMDDhhmmss", timestamp())}"

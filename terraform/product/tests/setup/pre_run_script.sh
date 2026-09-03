@@ -12,3 +12,7 @@ net.ipv4.tcp_retries2=5
 fs.file-max=1048576" | sudo tee /etc/sysctl.d/99-charm-dev.conf
 
 sudo sysctl --system
+
+if [ -n "${GITHUB_ENV:-}" ]; then
+  echo "JUJU_SKIP_FAILED_DELETION=true" >>"$GITHUB_ENV"
+fi
